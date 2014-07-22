@@ -109,6 +109,12 @@ func WriteGeoRanks(outfile string, numGeoRanks int, cp chan *RankedGeo, done cha
 	done <- true
 }
 
+func forceEncode(str string) (out string) {
+	out = strings.Replace(str, " ", "_", -1)
+	out = strings.Replace(out, ",", "%2C", -1)
+	return
+}
+
 func RankGeo(infile, geofile, outfile string) (err error) {
 	rankedGeoLookup := make(map[string]*RankedGeo, 10000)
 	rankedLocations := make([]RankedGeo, 1000000)
@@ -124,7 +130,10 @@ func RankGeo(infile, geofile, outfile string) (err error) {
 			RankedPage: nil,
 		}
 		rankedLocations[i] = rg
-		rankedGeoLookup[loc.Name] = &rankedLocations[i]
+		rankedGeoLookup[forceEncode(loc.Wiki)] = &rankedLocations[i]
+		if i < 50 {
+			log.Printf("Adding %s to the lookup table", loc.Wiki)
+		}
 		i++
 	}
 
@@ -135,16 +144,20 @@ func RankGeo(infile, geofile, outfile string) (err error) {
 	var found, missing uint
 
 	for page := range rpchan {
-		rankedGeo, ok := rankedGeoLookup[page.Title]
+		wiki_title := forceEncode(page.Title)
+		if found+missing < 50 {
+			log.Printf("Looking up %s in the lookup table", wiki_title)
+		}
+		rankedGeo, ok := rankedGeoLookup[wiki_title]
 		if ok {
 			rankedGeo.RankedPage = page
-			if found < 10 {
-				log.Printf("Found! page.Title: '%s'", rankedGeo.Title)
+			if found+missing < 50 {
+				log.Printf("Found! wiki_title: '%s'", rankedGeo.Title)
 			}
 			found++
 		} else {
-			if missing < 10 {
-				log.Printf("Missing! page.Title: '%s'", page.Title)
+			if found+missing < 50 {
+				log.Printf("Missing! wiki_title: '%s'", wiki_title)
 			}
 			missing++
 		}
