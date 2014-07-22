@@ -124,7 +124,7 @@ func WritePages(outfile string, numPages int, cp chan *Page, done chan bool) {
 	done <- true
 }
 
-func Graph(infile, locationsfile, outfile string) (err error) {
+func Graph(infile, outfile string) (err error) {
 	pages := make([]*Page, 0, 5000000)
 	pageTitleMap := make(map[string]*Page, 12000000)
 

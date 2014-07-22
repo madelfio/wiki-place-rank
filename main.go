@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	//"runtime"
@@ -42,19 +43,18 @@ func main() {
 		}
 
 	case "graph":
-		if len(os.Args) < 5 {
+		if len(os.Args) < 4 {
 			fmt.Println("Not enough arguments.\n")
-			fmt.Println("Usage: wpr graph <source_file> <locations_file> <dest_file>")
+			fmt.Println("Usage: wpr graph <source_file> <dest_file>")
 			return
 		}
 
 		infile := os.Args[2]
-		locationsfile := os.Args[3]
-		outfile := os.Args[4]
+		outfile := os.Args[3]
 
 		log.Println("Extracting wikipedia graph")
 
-		err := geowiki.Graph(infile, locationsfile, outfile)
+		err := geowiki.Graph(infile, outfile)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -90,6 +90,56 @@ func main() {
 		log.Println("Computing GeoRanks for location pages")
 
 		err := geowiki.RankGeo(infile, geofile, outfile)
+		if err != nil {
+			log.Panic(err)
+		}
+
+	case "all":
+		if len(os.Args) < 5 {
+			fmt.Println("Not enough arguments.\n")
+			fmt.Println("Usage: wpr all <wiki_dump> <geonames_dump> <dest_file>")
+			return
+		}
+
+		infile := os.Args[2]
+		geofile := os.Args[3]
+		outfile := os.Args[4]
+
+		tempdir, err := ioutil.TempDir("", "wiki-page-rank")
+		if err != nil {
+			log.Panic(err)
+		}
+
+		log.Printf("Temporary files will be stored in '%s'", tempdir)
+
+		temp1 := tempdir + "/1-graph.gob"
+		temp2 := tempdir + "/2-page-rank.gob"
+		temp3 := tempdir + "/3-locations.gob"
+
+		log.Println("Extracting wikipedia graph")
+
+		err = geowiki.Graph(infile, temp1)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		log.Println("Computing PageRank for all wikipedia pages")
+
+		err = geowiki.RankPages(temp1, temp2)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		log.Println("Extracting location refs from geonames")
+
+		err = geowiki.Locations(geofile, temp3)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		log.Println("Computing GeoRanks for location pages")
+
+		err = geowiki.RankGeo(temp2, temp3, outfile)
 		if err != nil {
 			log.Panic(err)
 		}
