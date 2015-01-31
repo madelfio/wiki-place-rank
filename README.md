@@ -24,7 +24,7 @@ Run the following:
 
     wiki-place-rank all $WIKIDUMP $GEONAMESDUMP geo-ranks.txt
     
-Alternatively, you can run each step of the process, individually:
+Alternatively, you can run each step of the process individually:
 
 1) `wiki-place-rank graph $WIKIDUMP 1-page-graph.gob`
 
