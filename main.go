@@ -5,23 +5,16 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	//"runtime"
 
 	"github.com/madelfio/wiki-place-rank/geowiki"
-
-	//"github.com/davecheney/profile"
 )
 
 func main() {
-	//defer profile.Start(profile.CPUProfile).Stop()
-
 	if len(os.Args) < 2 {
 		fmt.Println("Not enough arguments.\n")
 		usage()
 		return
 	}
-
-	//runtime.GOMAXPROCS(runtime.NumCPU()) // Mostly I/O bound, but why not
 
 	switch cmd := os.Args[1]; cmd {
 
